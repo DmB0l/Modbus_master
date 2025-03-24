@@ -1,0 +1,41 @@
+# Системные файлы
+.DS_Store
+Thumbs.db
+
+# Файлы и папки, создаваемые STM32CubeIDE
+.settings/
+*.cproject
+*.mxproject
+.project
+
+# Сгенерированные файлы
+*.o
+*.d
+*.elf
+*.bin
+*.hex
+*.map
+*.lst
+*.srec
+*.sym
+*.dep
+*.a
+*.lib
+
+# Логи и временные файлы
+*.log
+*.tmp
+*.temp
+
+# Папка сборки (если есть)
+Build/
+Debug/
+Release/
+
+# Исключить файл с путями
+filelist.txt
+
+# Исключить файлы, которые могут содержать конфиденциальную информацию
+*.key
+*.pem
+*.p12
