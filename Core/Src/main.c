@@ -23,6 +23,7 @@
 /* USER CODE BEGIN Includes */
 #include "modbus.h"
 #include <stdlib.h>
+#include <stdio.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -66,7 +67,9 @@ static void MX_GPIO_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
-void send_message(void);
+void Send_Message(void);
+void PrintHexArray8(const uint8_t *array, int length);
+void PrintHexArray16(const uint16_t *array, int length);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -111,19 +114,19 @@ int main(void) {
 	HAL_UART_Receive_IT(&huart1, rx_buffer, MODBUS_MIN_ADU_SIZE);
 
 	// Начальная отправка команд
-//    uint8_t coils_data[] = { 0xCD, 0x01 }; // 11001101 00000001 (10 бит)
-//    ModbusFrame fc0f = { .slave_id = 1, .function_code = FC_WRITE_MULT_COILS, .address = 20, .quantity = 10, .data = coils_data, .data_length = 2 };
-//    modbus_create_request(&fc0f, request_buffer, &req_length);
-//    send_message();
-//    while (!response_received && (HAL_GetTick() - response_timer < RESPONSE_TIMEOUT_MS)); // Ожидание ответа
-//    response_received = 0;
-//
-//    uint8_t regs_data[] = { 0x00, 0x0A, 0x00, 0x0B, 0x00, 0x0C }; // 10, 11, 12
-//    ModbusFrame fc10 = { .slave_id = 1, .function_code = FC_WRITE_MULT_REG, .address = 10, .quantity = 3, .data = regs_data, .data_length = 6 };
-//    modbus_create_request(&fc10, request_buffer, &req_length);
-//    send_message();
-//    while (!response_received && (HAL_GetTick() - response_timer < RESPONSE_TIMEOUT_MS)); // Ожидание ответа
-//    response_received = 0;
+	//    uint8_t coils_data[] = { 0xCD, 0x01 }; // 11001101 00000001 (10 бит)
+	//    ModbusFrame fc0f = { .slave_id = 1, .function_code = FC_WRITE_MULT_COILS, .address = 20, .quantity = 10, .data = coils_data, .data_length = 2 };
+	//    modbus_create_request(&fc0f, request_buffer, &req_length);
+	//    send_message();
+	//    while (!response_received && (HAL_GetTick() - response_timer < RESPONSE_TIMEOUT_MS)); // Ожидание ответа
+	//    response_received = 0;
+	//
+	//    uint8_t regs_data[] = { 0x00, 0x0A, 0x00, 0x0B, 0x00, 0x0C }; // 10, 11, 12
+	//    ModbusFrame fc10 = { .slave_id = 1, .function_code = FC_WRITE_MULT_REG, .address = 10, .quantity = 3, .data = regs_data, .data_length = 6 };
+	//    modbus_create_request(&fc10, request_buffer, &req_length);
+	//    send_message();
+	//    while (!response_received && (HAL_GetTick() - response_timer < RESPONSE_TIMEOUT_MS)); // Ожидание ответа
+	//    response_received = 0;
 
 	/* USER CODE END 2 */
 
@@ -136,36 +139,34 @@ int main(void) {
 
 		// 15. Write Multiple Coils (FC 0F)
 		uint8_t coils_data_loop[] = { 0xCD, 0x01 };
-		ModbusFrame fc0f_loop = { .slave_id = 1, .function_code = FC_WRITE_MULT_COILS, .address = 20, .quantity = 10, .data = coils_data_loop, .data_length = 2 };
+		ModbusFrame fc0f_loop = { .slave_id = 1, .function_code = FC_WRITE_MULT_COILS, .address = 20, .quantity = 10, .data = coils_data_loop,
+				.data_length = 2 };
 		modbus_create_request(&fc0f_loop, request_buffer, &req_length);
-		send_message();
-		while (!response_received && (HAL_GetTick() - response_timer < RESPONSE_TIMEOUT_MS))
-			; // Ожидание ответа
+		Send_Message();
+		while (!response_received && (HAL_GetTick() - response_timer < RESPONSE_TIMEOUT_MS)); // Ожидание ответа
 		response_received = 0;
 
 		// 16. Write Multiple Registers (FC 10)
 		uint8_t regs_data_loop[] = { 0x00, 0x0A, 0x00, 0x0B, 0x00, 0x0C };
-		ModbusFrame fc10_loop = { .slave_id = 1, .function_code = FC_WRITE_MULT_REG, .address = 10, .quantity = 3, .data = regs_data_loop, .data_length = 6 };
+		ModbusFrame fc10_loop = { .slave_id = 1, .function_code = FC_WRITE_MULT_REG, .address = 10, .quantity = 3, .data = regs_data_loop,
+				.data_length = 6 };
 		modbus_create_request(&fc10_loop, request_buffer, &req_length);
-		send_message();
-		while (!response_received && (HAL_GetTick() - response_timer < RESPONSE_TIMEOUT_MS))
-			; // Ожидание ответа
+		Send_Message();
+		while (!response_received && (HAL_GetTick() - response_timer < RESPONSE_TIMEOUT_MS)); // Ожидание ответа
 		response_received = 0;
 
 		// Проверка результата записи coils (FC 01)
 		ModbusFrame fc01_check = { .slave_id = 1, .function_code = FC_READ_COILS, .address = 20, .quantity = 10, .data = NULL, .data_length = 0 };
 		modbus_create_request(&fc01_check, request_buffer, &req_length);
-		send_message();
-		while (!response_received && (HAL_GetTick() - response_timer < RESPONSE_TIMEOUT_MS))
-			; // Ожидание ответа
+		Send_Message();
+		while (!response_received && (HAL_GetTick() - response_timer < RESPONSE_TIMEOUT_MS)); // Ожидание ответа
 		response_received = 0;
 
 		// Проверка результата записи регистров (FC 03)
 		ModbusFrame fc03_check = { .slave_id = 1, .function_code = FC_READ_HOLDING_REG, .address = 10, .quantity = 3, .data = NULL, .data_length = 0 };
 		modbus_create_request(&fc03_check, request_buffer, &req_length);
-		send_message();
-		while (!response_received && (HAL_GetTick() - response_timer < RESPONSE_TIMEOUT_MS))
-			; // Ожидание ответа
+		Send_Message();
+		while (!response_received && (HAL_GetTick() - response_timer < RESPONSE_TIMEOUT_MS)); // Ожидание ответа
 		response_received = 0;
 
 		HAL_Delay(1000); // Основная задержка между циклами
@@ -261,17 +262,6 @@ static void MX_GPIO_Init(void) {
 }
 
 /* USER CODE BEGIN 4 */
-void send_message(void) {
-//    if (HAL_UART_GetState(&huart1) == HAL_UART_STATE_READY) {
-	HAL_GPIO_WritePin(GPIOA, DREnable_Pin, GPIO_PIN_SET);
-	HAL_UART_Transmit(&huart1, request_buffer, req_length, 100);
-	HAL_UART_Transmit(&huart2, request_buffer, req_length, 100);
-	response_timer = HAL_GetTick(); // Запускаем таймер ожидания ответа
-	HAL_GPIO_WritePin(GPIOA, DREnable_Pin, GPIO_PIN_RESET);
-	HAL_UART_Receive_IT(&huart1, rx_buffer, MODBUS_MIN_ADU_SIZE);
-
-//    }
-}
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 	if (huart == &huart1) {
@@ -296,31 +286,57 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 			}
 		} else {
 			func_code = 0;
-            uint16_t value_count;
-            uint16_t *values = modbus_parse_response(rx_buffer, rx_real_size, &value_count);
+
+			printf("Reseived Response from slave: ");
+			PrintHexArray8(rx_buffer, rx_real_size);
+
+			uint16_t value_count;
+			uint16_t *values = modbus_process_response_from_slave(rx_buffer, rx_real_size, &value_count);
 			rx_real_size = 0;
 
-//			char mess[] = "Returned values: ";
-//			HAL_UART_Transmit(&huart2, (uint8_t*) mess, sizeof(mess), 100);
+			if (values != NULL) {
+				printf("Reseived values from slave: ");
+				PrintHexArray16(values, value_count);
 
-            if (values != NULL) {
-//                char mess[] = "Returned values: ";
-//                HAL_UART_Transmit(&huart2, (uint8_t*)mess, sizeof(mess), 100);
-                for (uint16_t i = 0; i < value_count; i++) {
-                    HAL_UART_Transmit(&huart2, (uint8_t*)&values[i], sizeof(uint16_t), 100);
-                }
-//                char mess2[] = "\n";
-//                HAL_UART_Transmit(&huart2, (uint8_t*)mess2, sizeof(mess2), 100);
-                free(values);
-            } else {
-//                char mess[] = "No values returned (write operation or error)\n";
-//                HAL_UART_Transmit(&huart2, (uint8_t*)mess, sizeof(mess), 100);
-            }
+				free(values);
+			}
 
 			response_received = 1; // Устанавливаем флаг завершения приема
 			HAL_UART_Receive_IT(&huart1, rx_buffer, MODBUS_MIN_ADU_SIZE);
 		}
 	}
+}
+
+void Send_Message(void) {
+	//    if (HAL_UART_GetState(&huart1) == HAL_UART_STATE_READY) {
+	printf("Sending from master to slave: ");
+	PrintHexArray8(request_buffer, req_length);
+	HAL_GPIO_WritePin(GPIOA, DREnable_Pin, GPIO_PIN_SET);
+	HAL_UART_Transmit(&huart1, request_buffer, req_length, 100);
+	response_timer = HAL_GetTick(); // Запускаем таймер ожидания ответа
+	HAL_GPIO_WritePin(GPIOA, DREnable_Pin, GPIO_PIN_RESET);
+	HAL_UART_Receive_IT(&huart1, rx_buffer, MODBUS_MIN_ADU_SIZE);
+	//    }
+}
+
+void PrintHexArray8(const uint8_t *array, int length) {
+	for (int i = 0; i < length; i++) {
+		printf("%02X ", array[i]); // %02X для HEX в верхнем регистре
+	}
+	printf("\n");
+}
+
+void PrintHexArray16(const uint16_t *array, int length) {
+	for (uint16_t i = 0; i < length; i++) {
+		printf("%04X ", array[i]); // Вывод uint16_t в HEX
+	}
+	printf("\n");
+}
+
+// Перенаправление printf в UART2
+int _write(int file, uint8_t *ptr, int len) {  // Лучше использовать uint8_t*
+	HAL_UART_Transmit(&huart2, ptr, len, HAL_MAX_DELAY);
+	return len;
 }
 /* USER CODE END 4 */
 
