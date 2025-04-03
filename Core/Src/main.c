@@ -22,6 +22,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "modbus.h"
+#include "flashmemory.h"
 #include <stdlib.h>
 #include <stdio.h>
 /* USER CODE END Includes */
@@ -50,7 +51,7 @@ UART_HandleTypeDef huart2;
 uint8_t request_buffer[MODBUS_MAX_ADU_SIZE];
 uint16_t req_length;
 
-volatile uint32_t start_time = 0;
+volatile uint32_t time_from_last_rxint = 0;
 
 uint8_t rx_buffer[256];                // Буфер для приема данных
 volatile uint8_t rx_real_size = 0;
@@ -109,7 +110,7 @@ int main(void) {
 	MX_USART2_UART_Init();
 	/* USER CODE BEGIN 2 */
 
-	start_time = HAL_GetTick();
+	time_from_last_rxint = HAL_GetTick();
 
 	HAL_UART_Receive_IT(&huart1, rx_buffer, MODBUS_MIN_ADU_SIZE);
 
@@ -265,7 +266,7 @@ static void MX_GPIO_Init(void) {
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 	if (huart == &huart1) {
-		start_time = HAL_GetTick();
+		time_from_last_rxint = HAL_GetTick();
 		if (func_code == 0) {
 			rx_real_size = 0;
 			func_code = rx_buffer[1];
